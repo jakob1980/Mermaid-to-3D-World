@@ -369,4 +369,4 @@ export function initUI(callbacks) {
 }
 
 // Esporta funzioni e classi
-export { initUI, UIManager };
+export { UIManager };

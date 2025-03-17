@@ -62,13 +62,22 @@ export function createNodeMeshes(scene, nodes, nodePositions) {
     plane.material = material;
 
     // Disegna il testo
+    // Calcola la dimensione del testo in base alla lunghezza
+    const fontSize = Math.min(72, Math.max(36, 400 / node.label.length));
+    
+    // Imposta il contesto per il rendering del testo
+    const ctx = texture.getContext();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    // Disegna uno sfondo semi-trasparente per il testo
     texture.drawText(
       node.label,
-      null,
-      80,
-      "bold 72px Arial",
-      "white",
-      "transparent",
+      256,
+      64,
+      `bold ${fontSize}px Arial`,
+      "black",
+      "#ffffff99",
       true
     );
 

@@ -1,29 +1,20 @@
 
 {
+  "public": ".",
+  "directoryListing": false,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/**", "destination": "/index.html" }
+  ],
   "headers": [
     {
-      "source": "**/*.mmd",
+      "source": "**/*.{html,css,js}",
       "headers": [
         {
-          "key": "Content-Type",
-          "value": "text/plain"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
-    },
-    {
-      "source": "**/*.js",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
+          "key": "Cache-Control",
+          "value": "no-cache"
         }
       ]
     }
-  ],
-  "public": ".",
-  "cleanUrls": false
+  ]
 }

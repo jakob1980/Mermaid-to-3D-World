@@ -118,15 +118,19 @@ B --> C[End]
     
     <!-- JavaScript Modules -->
     <script type="module">
-        window.addEventListener('load', async () => {
+        import { MermaidTo3DWorld } from './src/main.js';
+        
+        window.addEventListener('DOMContentLoaded', () => {
             try {
-                const { MermaidTo3DWorld } = await import('./src/main.js');
-                const app = new MermaidTo3DWorld();
-                await app.init();
-                console.log('Applicazione inizializzata con successo');
+                window.app = new MermaidTo3DWorld();
+                window.app.init().catch(error => {
+                    console.error('Errore durante l\'inizializzazione:', error);
+                    document.getElementById('statusMessage').textContent = 'Errore di inizializzazione: ' + error.message;
+                    document.getElementById('statusMessage').className = 'status-message error';
+                });
             } catch (error) {
-                console.error('Errore durante l\'inizializzazione:', error);
-                document.getElementById('statusMessage').textContent = 'Errore di inizializzazione: ' + error.message;
+                console.error('Errore durante la creazione dell\'app:', error);
+                document.getElementById('statusMessage').textContent = 'Errore di creazione: ' + error.message;
                 document.getElementById('statusMessage').className = 'status-message error';
             }
         });

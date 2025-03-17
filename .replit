@@ -17,7 +17,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx serve -l 3000 --cors --no-clipboard --listen 0.0.0.0"
+args = "npx serve -l 3000 -s ."
 
 [[ports]]
 localPort = 3000

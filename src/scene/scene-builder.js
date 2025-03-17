@@ -17,6 +17,8 @@ class SceneBuilder {
     this.nodeMeshes = {};
     this.pathMeshes = [];
     this.highlightLayer = null;
+    this.selectedNode = null;
+    this.detailPanel = null;
     
     // Inizializza il motore Babylon.js
     this.engine = new BABYLON.Engine(canvas, true);
@@ -163,7 +165,7 @@ class SceneBuilder {
     // Opzione 2: Layout a griglia per molti nodi
     else if (nodeCount > 10) {
       const gridSize = Math.ceil(Math.sqrt(nodeCount));
-      const spacing = 10; // Spazio tra i nodi
+      const spacing = 15; // Aumentato lo spazio tra i nodi
       
       nodes.forEach((node, index) => {
         const row = Math.floor(index / gridSize);
@@ -221,6 +223,9 @@ class SceneBuilder {
       });
     }
     
+    // Crea il pannello dei dettagli
+    this.createDetailPanel();
+    
     // Configura l'interazione con la scena
     this.setupInteraction();
     
@@ -228,6 +233,313 @@ class SceneBuilder {
     this.startRenderLoop();
     
     return true;
+  }
+
+  /**
+   * Crea il pannello dei dettagli per visualizzare le informazioni dei nodi
+   */
+  createDetailPanel() {
+    // Verifica se esiste già un pannello e rimuovilo
+    if (this.detailPanel) {
+      document.body.removeChild(this.detailPanel);
+    }
+    
+    // Crea il pannello dei dettagli
+    this.detailPanel = document.createElement('div');
+    this.detailPanel.id = 'nodeDetailPanel';
+    this.detailPanel.className = 'node-detail-panel';
+    this.detailPanel.style.display = 'none';
+    
+    // Crea intestazione del pannello
+    const header = document.createElement('div');
+    header.className = 'detail-header';
+    
+    const title = document.createElement('h3');
+    title.id = 'detailTitle';
+    title.textContent = 'Dettagli del Nodo';
+    header.appendChild(title);
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'close-detail-button';
+    closeButton.textContent = '×';
+    closeButton.onclick = () => {
+      this.hideDetailPanel();
+    };
+    header.appendChild(closeButton);
+    
+    this.detailPanel.appendChild(header);
+    
+    // Crea contenuto del pannello
+    const content = document.createElement('div');
+    content.id = 'detailContent';
+    content.className = 'detail-content';
+    this.detailPanel.appendChild(content);
+    
+    // Aggiungi il pannello al DOM
+    document.body.appendChild(this.detailPanel);
+    
+    // Aggiungi stili CSS inline per il pannello
+    const style = document.createElement('style');
+    style.textContent = `
+      .node-detail-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 300px;
+        max-height: 80vh;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        z-index: 100;
+        overflow: hidden;
+        display: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      
+      .detail-header {
+        background-color: #2c3e50;
+        color: white;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .detail-header h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+      
+      .close-detail-button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      
+      .detail-content {
+        padding: 15px;
+        overflow-y: auto;
+        max-height: calc(80vh - 40px);
+      }
+      
+      .detail-section {
+        margin-bottom: 15px;
+      }
+      
+      .detail-section h4 {
+        margin: 0 0 5px 0;
+        font-size: 14px;
+        color: #3498db;
+      }
+      
+      .detail-property {
+        margin: 5px 0;
+        font-size: 13px;
+      }
+      
+      .detail-property span {
+        font-weight: bold;
+      }
+      
+      .detail-label {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        word-break: break-word;
+      }
+      
+      .zoom-button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-top: 10px;
+      }
+      
+      .zoom-button:hover {
+        background-color: #2980b9;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  /**
+   * Mostra il pannello dei dettagli con le informazioni del nodo
+   * @param {Object} node Il nodo di cui visualizzare i dettagli
+   */
+  showDetailPanel(node) {
+    if (!this.detailPanel) return;
+    
+    const titleElement = document.getElementById('detailTitle');
+    const contentElement = document.getElementById('detailContent');
+    
+    if (!titleElement || !contentElement) return;
+    
+    // Imposta il titolo
+    titleElement.textContent = `Nodo: ${node.id}`;
+    
+    // Pulisci il contenuto precedente
+    contentElement.innerHTML = '';
+    
+    // Aggiungi l'etichetta
+    const labelSection = document.createElement('div');
+    labelSection.className = 'detail-section';
+    
+    const label = document.createElement('div');
+    label.className = 'detail-label';
+    label.textContent = node.data.label;
+    labelSection.appendChild(label);
+    
+    contentElement.appendChild(labelSection);
+    
+    // Aggiungi le proprietà del nodo
+    const propertiesSection = document.createElement('div');
+    propertiesSection.className = 'detail-section';
+    
+    const propertiesTitle = document.createElement('h4');
+    propertiesTitle.textContent = 'Proprietà';
+    propertiesSection.appendChild(propertiesTitle);
+    
+    // Aggiungi ID e tipo
+    const idProperty = document.createElement('div');
+    idProperty.className = 'detail-property';
+    idProperty.innerHTML = `<span>ID:</span> ${node.data.id}`;
+    propertiesSection.appendChild(idProperty);
+    
+    const typeProperty = document.createElement('div');
+    typeProperty.className = 'detail-property';
+    typeProperty.innerHTML = `<span>Tipo:</span> ${node.data.type || 'Standard'}`;
+    propertiesSection.appendChild(typeProperty);
+    
+    // Aggiungi proprietà specifiche in base al tipo di nodo
+    if (node.data.type === 'class') {
+      // Mostra attributi e metodi per i nodi classe
+      if (node.data.attributes && node.data.attributes.length > 0) {
+        const attrSection = document.createElement('div');
+        attrSection.className = 'detail-section';
+        
+        const attrTitle = document.createElement('h4');
+        attrTitle.textContent = 'Attributi';
+        attrSection.appendChild(attrTitle);
+        
+        node.data.attributes.forEach(attr => {
+          const attrItem = document.createElement('div');
+          attrItem.className = 'detail-property';
+          attrItem.textContent = attr.name;
+          attrSection.appendChild(attrItem);
+        });
+        
+        contentElement.appendChild(attrSection);
+      }
+      
+      if (node.data.methods && node.data.methods.length > 0) {
+        const methodsSection = document.createElement('div');
+        methodsSection.className = 'detail-section';
+        
+        const methodsTitle = document.createElement('h4');
+        methodsTitle.textContent = 'Metodi';
+        methodsSection.appendChild(methodsTitle);
+        
+        node.data.methods.forEach(method => {
+          const methodItem = document.createElement('div');
+          methodItem.className = 'detail-property';
+          methodItem.textContent = method.name;
+          methodsSection.appendChild(methodItem);
+        });
+        
+        contentElement.appendChild(methodsSection);
+      }
+    } else if (node.data.type === 'note' || node.data.type === 'note_over' || node.data.type === 'note_between') {
+      // Mostra il testo completo della nota
+      const noteSection = document.createElement('div');
+      noteSection.className = 'detail-section';
+      
+      const noteTitle = document.createElement('h4');
+      noteTitle.textContent = 'Contenuto Nota';
+      noteSection.appendChild(noteTitle);
+      
+      const noteContent = document.createElement('div');
+      noteContent.className = 'detail-property';
+      noteContent.style.whiteSpace = 'pre-wrap';
+      noteContent.textContent = node.data.label;
+      noteSection.appendChild(noteContent);
+      
+      contentElement.appendChild(noteSection);
+    }
+    
+    contentElement.appendChild(propertiesSection);
+    
+    // Aggiungi pulsante per zoomare sul nodo
+    const zoomButton = document.createElement('button');
+    zoomButton.className = 'zoom-button';
+    zoomButton.textContent = 'Zoom su questo nodo';
+    zoomButton.onclick = () => {
+      this.zoomToNode(node);
+    };
+    contentElement.appendChild(zoomButton);
+    
+    // Mostra il pannello
+    this.detailPanel.style.display = 'block';
+  }
+
+  /**
+   * Nasconde il pannello dei dettagli
+   */
+  hideDetailPanel() {
+    if (this.detailPanel) {
+      this.detailPanel.style.display = 'none';
+    }
+    
+    // Deseleziona il nodo corrente
+    if (this.selectedNode) {
+      this.highlightLayer.removeMesh(this.nodeMeshes[this.selectedNode].mesh);
+      this.selectedNode = null;
+    }
+  }
+
+  /**
+   * Zoom su un nodo specifico
+   * @param {Object} node Il nodo su cui fare zoom
+   */
+  zoomToNode(node) {
+    if (!this.camera || !node) return;
+    
+    const nodeMesh = this.nodeMeshes[node.data.id].mesh;
+    if (!nodeMesh) return;
+    
+    // Calcola la posizione target per la camera
+    const targetPosition = nodeMesh.position.clone();
+    const distance = 8; // Distanza ravvicinata per vedere i dettagli
+    
+    // Anima la telecamera verso il nodo
+    BABYLON.Animation.CreateAndStartAnimation(
+      "cameraAnimation",
+      this.camera,
+      "target",
+      30, // frame rate
+      30, // numero di frame
+      this.camera.target,
+      targetPosition,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+    
+    BABYLON.Animation.CreateAndStartAnimation(
+      "cameraRadiusAnimation",
+      this.camera,
+      "radius",
+      30, // frame rate
+      30, // numero di frame
+      this.camera.radius,
+      distance,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
   }
 
   /**
@@ -241,6 +553,10 @@ class SceneBuilder {
     this.nodeMeshes = {};
     this.pathMeshes = [];
     this.highlightLayer = null;
+    this.selectedNode = null;
+    
+    // Nascondi il pannello dei dettagli
+    this.hideDetailPanel();
   }
 
   /**
@@ -271,6 +587,9 @@ class SceneBuilder {
           const nodeId = pickedMesh.name.replace('node_', '');
           console.log(`Node clicked: ${nodeId}`);
           
+          // Seleziona il nodo e mostra i dettagli
+          this.selectNode(nodeId);
+          
           // Esempio: Fai "pulsare" il nodo quando viene cliccato
           this.pulseNode(pickedMesh);
         }
@@ -280,12 +599,17 @@ class SceneBuilder {
       if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
         const pickedMesh = this.scene.pick(this.scene.pointerX, this.scene.pointerY).pickedMesh;
         
-        // Rimuovi tutte le evidenziazioni
+        // Rimuovi tutte le evidenziazioni tranne il nodo selezionato
         this.highlightLayer?.removeAllMeshes();
+        if (this.selectedNode) {
+          this.highlightLayer?.addMesh(this.nodeMeshes[this.selectedNode].mesh, new BABYLON.Color3(0, 1, 0));
+        }
         
         // Evidenzia la mesh sotto il cursore
         if (pickedMesh && (pickedMesh.name.startsWith('node_') || pickedMesh.name.startsWith('path_'))) {
-          this.highlightLayer?.addMesh(pickedMesh, new BABYLON.Color3(1, 1, 0));
+          if (!this.selectedNode || !pickedMesh.name.includes(this.selectedNode)) {
+            this.highlightLayer?.addMesh(pickedMesh, new BABYLON.Color3(1, 1, 0));
+          }
           
           // Cambia il cursore per indicare che l'elemento è cliccabile
           this.canvas.style.cursor = 'pointer';
@@ -295,6 +619,29 @@ class SceneBuilder {
         }
       }
     });
+  }
+
+  /**
+   * Seleziona un nodo e mostra i suoi dettagli
+   * @param {string} nodeId L'ID del nodo da selezionare
+   */
+  selectNode(nodeId) {
+    // Deseleziona il nodo precedente
+    if (this.selectedNode) {
+      this.highlightLayer.removeMesh(this.nodeMeshes[this.selectedNode].mesh);
+    }
+    
+    // Seleziona il nuovo nodo
+    this.selectedNode = nodeId;
+    const nodeMesh = this.nodeMeshes[nodeId];
+    
+    if (nodeMesh) {
+      // Evidenzia il nodo selezionato
+      this.highlightLayer.addMesh(nodeMesh.mesh, new BABYLON.Color3(0, 1, 0));
+      
+      // Mostra i dettagli del nodo
+      this.showDetailPanel(nodeMesh);
+    }
   }
 
   /**
@@ -391,6 +738,11 @@ class SceneBuilder {
     
     if (this.engine) {
       this.engine.dispose();
+    }
+    
+    // Rimuovi il pannello dei dettagli
+    if (this.detailPanel && this.detailPanel.parentNode) {
+      this.detailPanel.parentNode.removeChild(this.detailPanel);
     }
   }
 }

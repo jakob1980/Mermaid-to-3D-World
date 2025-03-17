@@ -45,6 +45,8 @@ header p {
     justify-content: space-between;
     flex-wrap: wrap;
     border-bottom: 1px solid #ddd;
+    z-index: 10;
+    position: relative;
 }
 
 .control-section {
@@ -225,6 +227,99 @@ header p {
     overflow-x: auto;
 }
 
+/* Pannello dettagli nodo */
+.node-detail-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    max-height: 80vh;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    overflow: hidden;
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: transform 0.3s ease;
+}
+
+.node-detail-panel.visible {
+    display: block;
+    transform: translateX(0);
+}
+
+.detail-header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.close-detail-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.detail-content {
+    padding: 15px;
+    overflow-y: auto;
+    max-height: calc(80vh - 40px);
+}
+
+.detail-section {
+    margin-bottom: 15px;
+}
+
+.detail-section h4 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #3498db;
+}
+
+.detail-property {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+.detail-property span {
+    font-weight: bold;
+}
+
+.detail-label {
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    word-break: break-word;
+}
+
+.zoom-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.zoom-button:hover {
+    background-color: #2980b9;
+}
+
 /* Toast di errore */
 .error-toast {
     position: fixed;
@@ -243,6 +338,51 @@ header p {
 /* Stato di drag-over per l'upload */
 .drag-over {
     border: 3px dashed #3498db;
+}
+
+/* Tooltip personalizzato per i nodi */
+.node-tooltip {
+    position: absolute;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    z-index: 150;
+    pointer-events: none;
+    max-width: 250px;
+    word-wrap: break-word;
+    transition: opacity 0.2s;
+}
+
+/* Controlli avanzati della camera */
+.camera-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+}
+
+.camera-button {
+    background-color: rgba(44, 62, 80, 0.7);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    margin: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.camera-button:hover {
+    background-color: rgba(44, 62, 80, 0.9);
 }
 
 /* Responsive design */
@@ -269,6 +409,12 @@ header p {
     .help-panel {
         width: 95%;
     }
+    
+    .node-detail-panel {
+        width: 90%;
+        left: 5%;
+        right: 5%;
+    }
 }
 
 /* Animazioni */
@@ -281,29 +427,18 @@ header p {
     animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Tooltips */
-[data-tooltip] {
-    position: relative;
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
-[data-tooltip]:before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.2s;
+.pulse {
+    animation: pulse 0.5s ease-in-out;
 }
 
-[data-tooltip]:hover:before {
-    visibility: visible;
-    opacity: 1;
+/* Evidenziazione nodi selezionati */
+.node-highlight {
+    outline: 2px solid rgba(46, 204, 113, 0.8);
+    outline-offset: 2px;
 }

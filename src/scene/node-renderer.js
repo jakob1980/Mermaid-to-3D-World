@@ -29,11 +29,22 @@ export function createNodeMeshes(scene, nodes, nodePositions) {
     );
     nodeMesh.position = new BABYLON.Vector3(position.x, position.y, position.z);
     nodeMesh.material = materials[node.type] || materials.default;
+    
+    // Memorizza i dati del nodo come metadati per l'interazione
+    nodeMesh.metadata = {
+      id: node.id,
+      label: node.label,
+      nodeType: node.type,
+      fullData: node
+    };
 
-    // Crea etichetta del nodo
+    // Calcola dimensioni ottimali per l'etichetta
+    const { textLines, maxLineWidth, labelWidth, labelHeight } = calculateLabelDimensions(node.label);
+
+    // Crea etichetta del nodo con dimensioni appropriate
     const plane = BABYLON.MeshBuilder.CreatePlane(
       `label_${node.id}`,
-      { width: 4, height: 1 },
+      { width: labelWidth, height: labelHeight },
       scene
     );
 
@@ -47,13 +58,17 @@ export function createNodeMeshes(scene, nodes, nodePositions) {
     // Orienta l'etichetta verso la telecamera
     plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-    // Crea texture dinamica per il testo
+    // Crea texture dinamica per il testo con dimensioni proporzionali
+    const textureWidth = Math.max(512, maxLineWidth * 16);
+    const textureHeight = Math.max(128, textLines.length * 40);
+    
     const texture = new BABYLON.DynamicTexture(
       `texture_${node.id}`,
-      { width: 512, height: 128 },
+      { width: textureWidth, height: textureHeight },
       scene,
       true
     );
+    
     const material = new BABYLON.StandardMaterial(`material_${node.id}`, scene);
     material.diffuseTexture = texture;
     material.specularColor = new BABYLON.Color3(0, 0, 0);
@@ -61,25 +76,12 @@ export function createNodeMeshes(scene, nodes, nodePositions) {
     material.backFaceCulling = false;
     plane.material = material;
 
-    // Disegna il testo
-    // Calcola la dimensione del testo in base alla lunghezza
-    const fontSize = Math.min(72, Math.max(36, 400 / node.label.length));
-    
-    // Imposta il contesto per il rendering del testo
-    const ctx = texture.getContext();
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    
-    // Disegna uno sfondo semi-trasparente per il testo
-    texture.drawText(
-      node.label,
-      256,
-      64,
-      `bold ${fontSize}px Arial`,
-      "black",
-      "#ffffff99",
-      true
-    );
+    // Disegna il testo multilinea
+    drawMultilineText(texture, textLines);
+
+    // Collegamento tra nodeMesh e etichetta
+    nodeMesh.label = plane;
+    plane.metadata = { parentNodeId: node.id };
 
     nodeMeshes[node.id] = {
       mesh: nodeMesh,
@@ -90,6 +92,99 @@ export function createNodeMeshes(scene, nodes, nodePositions) {
   });
 
   return nodeMeshes;
+}
+
+/**
+ * Calcola le dimensioni appropriate per un'etichetta in base al testo
+ * @param {string} text Il testo dell'etichetta
+ * @returns {Object} Dimensioni e layout del testo
+ */
+function calculateLabelDimensions(text) {
+  // Dividi il testo in linee se è più lungo di 20 caratteri
+  const maxCharsPerLine = 20;
+  let textLines = [];
+  
+  if (text.length <= maxCharsPerLine) {
+    textLines = [text];
+  } else {
+    // Dividi il testo in parole
+    const words = text.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      if ((currentLine + word).length <= maxCharsPerLine) {
+        currentLine += (currentLine ? ' ' : '') + word;
+      } else {
+        if (currentLine) {
+          textLines.push(currentLine);
+        }
+        // Se la parola è più lunga del massimo, spezzala
+        if (word.length > maxCharsPerLine) {
+          let remainingWord = word;
+          while (remainingWord.length > 0) {
+            const chunk = remainingWord.substring(0, maxCharsPerLine);
+            textLines.push(chunk);
+            remainingWord = remainingWord.substring(maxCharsPerLine);
+          }
+          currentLine = '';
+        } else {
+          currentLine = word;
+        }
+      }
+    }
+    
+    if (currentLine) {
+      textLines.push(currentLine);
+    }
+  }
+  
+  // Calcola la larghezza massima tra le linee
+  const maxLineWidth = Math.max(...textLines.map(line => line.length));
+  
+  // Calcola le dimensioni del piano dell'etichetta in base al testo
+  const labelWidth = Math.max(4, maxLineWidth * 0.25);
+  const labelHeight = Math.max(1, textLines.length * 0.5);
+  
+  return { textLines, maxLineWidth, labelWidth, labelHeight };
+}
+
+/**
+ * Disegna testo multilinea su una texture
+ * @param {BABYLON.DynamicTexture} texture La texture su cui disegnare
+ * @param {Array} textLines Array di linee di testo
+ */
+function drawMultilineText(texture, textLines) {
+  const ctx = texture.getContext();
+  const width = ctx.canvas.width;
+  const height = ctx.canvas.height;
+  
+  // Pulisci la texture
+  ctx.clearRect(0, 0, width, height);
+  
+  // Disegna uno sfondo semi-trasparente
+  ctx.fillStyle = "#ffffff99";
+  ctx.fillRect(0, 0, width, height);
+  
+  // Configura lo stile del testo
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "black";
+  
+  // Calcola la dimensione del font in base al numero di linee e alla lunghezza
+  const maxLineLength = Math.max(...textLines.map(line => line.length));
+  const fontSize = Math.min(48, Math.max(24, 600 / maxLineLength, 600 / (textLines.length * 2)));
+  ctx.font = `bold ${fontSize}px Arial`;
+  
+  // Disegna ciascuna linea di testo
+  const lineHeight = fontSize * 1.2;
+  const startY = (height - (textLines.length * lineHeight)) / 2 + fontSize / 2;
+  
+  textLines.forEach((line, index) => {
+    ctx.fillText(line, width / 2, startY + index * lineHeight);
+  });
+  
+  // Aggiorna la texture
+  texture.update();
 }
 
 /**

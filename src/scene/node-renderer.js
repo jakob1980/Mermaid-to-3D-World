@@ -183,9 +183,10 @@ function createNodeLabel(scene, node, position) {
   
   // Crea un materiale per il testo
   const textMaterial = new BABYLON.StandardMaterial(`label_material_${node.id}`, scene);
-  textMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+  textMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
   textMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-  textMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+  textMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
+  textMaterial.alpha = 0.9;
   textMaterial.backFaceCulling = false;
   
   // Crea un piano per l'etichetta

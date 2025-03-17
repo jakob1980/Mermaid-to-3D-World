@@ -1,0 +1,14 @@
+
+{
+  "headers": [
+    {
+      "source": "**/*.mmd",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain"
+        }
+      ]
+    }
+  ]
+}

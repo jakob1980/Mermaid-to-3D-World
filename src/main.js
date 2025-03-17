@@ -64,6 +64,14 @@ class MermaidTo3DWorld {
   async handleFileUpload(file) {
     try {
       console.log("Inizio elaborazione file:", file.name);
+      if (!file) {
+        throw new Error('Nessun file selezionato');
+      }
+      
+      if (!file.name.endsWith('.mmd') && !file.name.endsWith('.txt')) {
+        throw new Error('Il file deve avere estensione .mmd o .txt');
+      }
+      
       this.showLoading('Parsing del file Mermaid...');
       
       // Genera JSON dal file Mermaid
@@ -102,8 +110,14 @@ class MermaidTo3DWorld {
       this.showLoading('Caricamento esempio...');
       
       // Carica il file di esempio
-      console.log("Fetch del file:", `data/sample-${exampleName}.mmd`);
-      const response = await fetch(`data/sample-${exampleName}.mmd`);
+      const filename = `data/sample-${exampleName}.mmd`;
+      console.log("Fetch del file:", filename);
+      const response = await fetch(filename, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!response.ok) {
         throw new Error(`Impossibile caricare l'esempio (${response.status}): ${response.statusText}`);
       }

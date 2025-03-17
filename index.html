@@ -118,25 +118,18 @@ B --> C[End]
     
     <!-- JavaScript Modules -->
     <script type="module">
-        // Script di debug per verificare il caricamento dei moduli
-        console.log('Test caricamento moduli ES6...');
-        
-        try {
-            import('./src/main.js')
-                .then(module => {
-                    console.log('Module main.js caricato con successo!');
-                    window.appModule = module;
-                })
-                .catch(error => {
-                    console.error('Errore durante il caricamento del modulo main.js:', error);
-                    document.getElementById('statusMessage').textContent = 'Errore di caricamento moduli: ' + error.message;
-                    document.getElementById('statusMessage').className = 'status-message error';
-                    document.getElementById('statusMessage').style.display = 'block';
-                    document.getElementById('loadingIndicator').style.display = 'none';
-                });
-        } catch (error) {
-            console.error('Errore generale durante l\'importazione:', error);
-        }
+        window.addEventListener('load', async () => {
+            try {
+                const { MermaidTo3DWorld } = await import('./src/main.js');
+                const app = new MermaidTo3DWorld();
+                await app.init();
+                console.log('Applicazione inizializzata con successo');
+            } catch (error) {
+                console.error('Errore durante l\'inizializzazione:', error);
+                document.getElementById('statusMessage').textContent = 'Errore di inizializzazione: ' + error.message;
+                document.getElementById('statusMessage').className = 'status-message error';
+            }
+        });
     </script>
     
     <!-- Rimuoviamo il riferimento modulare normale per evitare duplicati -->

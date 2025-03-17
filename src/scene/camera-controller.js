@@ -19,19 +19,19 @@ export function setupCamera(scene, canvas) {
     new BABYLON.Vector3(0, 0, 0),  // punto di target
     scene
   );
-  
+
   // Collega i controlli della telecamera al canvas
   camera.attachControl(canvas, true);
-  
+
   // Configura i limiti della telecamera
   configureCameraLimits(camera);
-  
+
   // Configura i controlli della telecamera
   configureCameraControls(camera);
-  
+
   // Configura gli eventi per la navigazione
   setupCameraNavigation(camera, scene, canvas);
-  
+
   return camera;
 }
 
@@ -43,14 +43,14 @@ function configureCameraLimits(camera) {
   // Limita la distanza minima e massima dalla scena
   camera.lowerRadiusLimit = 10;  // Non troppo vicino
   camera.upperRadiusLimit = 100; // Non troppo lontano
-  
+
   // Limita l'angolo verticale (beta)
   camera.lowerBetaLimit = 0.1;   // Non completamente dall'alto
   camera.upperBetaLimit = Math.PI / 2; // Non sotto la scena
-  
+
   // Velocità dello zoom con la rotella del mouse
   camera.wheelDeltaPercentage = 0.01;
-  
+
   // Inerzia (effetto di smorzamento dei movimenti)
   camera.inertia = 0.7;
 }
@@ -62,18 +62,18 @@ function configureCameraLimits(camera) {
 function configureCameraControls(camera) {
   // Imposta i pulsanti del mouse per i controlli
   camera.inputs.attached.pointers.buttons = [0, 1, 2];  // Supporta tasto sinistro, medio e destro
-  
+
   // Sensibilità dell'angolazione
   camera.angularSensibilityX = 500;
   camera.angularSensibilityY = 500;
-  
+
   // Sensibilità panoramica
   camera.panningSensibility = 50;
-  
+
   // Abilita il panning con il tasto destro (spostamento della telecamera)
   camera.useCtrlForPanning = false;
   camera.panningAxis = new BABYLON.Vector3(1, 1, 1);  // Consenti panning su tutti gli assi
-  
+
   // Opzionale: imposta una posizione home che può essere ripristinata
   camera.setPosition(new BABYLON.Vector3(30, 20, 30));
 }
@@ -89,10 +89,10 @@ function setupCameraNavigation(camera, scene, canvas) {
   scene.onPointerObservable.add((pointerInfo) => {
     if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOUBLETAP) {
       const pickResult = scene.pick(scene.pointerX, scene.pointerY);
-      
+
       if (pickResult.hit && pickResult.pickedMesh) {
         const mesh = pickResult.pickedMesh;
-        
+
         // Verifica se è un nodo
         if (mesh.name.startsWith('node_')) {
           // Anima la telecamera verso il nodo
@@ -101,7 +101,7 @@ function setupCameraNavigation(camera, scene, canvas) {
       }
     }
   });
-  
+
   // Pulsante Home (opzionale)
   const homeButton = document.getElementById('homeButton');
   if (homeButton) {
@@ -109,7 +109,7 @@ function setupCameraNavigation(camera, scene, canvas) {
       resetCameraPosition(camera);
     });
   }
-  
+
   // Gestisci il tasto ESC per ripristinare la vista
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -132,23 +132,23 @@ export function animateCameraToTarget(camera, targetPosition) {
     BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
   );
-  
+
   // Keyframes per l'animazione target
   const targetKeyframes = [
     { frame: 0, value: camera.target },
     { frame: 30, value: targetPosition }
   ];
   targetAnimation.setKeys(targetKeyframes);
-  
+
   // Aggiungi easing
   const easingFunction = new BABYLON.QuadraticEase();
   easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
   targetAnimation.setEasingFunction(easingFunction);
-  
+
   // Aggiungi l'animazione alla telecamera
   camera.animations = [];
   camera.animations.push(targetAnimation);
-  
+
   // Avvia l'animazione
   camera.getScene().beginAnimation(camera, 0, 30, false);
 }
@@ -166,7 +166,7 @@ export function resetCameraPosition(camera) {
     BABYLON.Animation.ANIMATIONTYPE_FLOAT,
     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
   );
-  
+
   const betaAnimation = new BABYLON.Animation(
     "betaAnimation",
     "beta",
@@ -174,7 +174,7 @@ export function resetCameraPosition(camera) {
     BABYLON.Animation.ANIMATIONTYPE_FLOAT,
     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
   );
-  
+
   const radiusAnimation = new BABYLON.Animation(
     "radiusAnimation",
     "radius",
@@ -182,7 +182,7 @@ export function resetCameraPosition(camera) {
     BABYLON.Animation.ANIMATIONTYPE_FLOAT,
     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
   );
-  
+
   const targetAnimation = new BABYLON.Animation(
     "targetAnimation",
     "target",
@@ -190,44 +190,44 @@ export function resetCameraPosition(camera) {
     BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
   );
-  
+
   // Keyframes
   alphaAnimation.setKeys([
     { frame: 0, value: camera.alpha },
     { frame: 30, value: -Math.PI / 2 }
   ]);
-  
+
   betaAnimation.setKeys([
     { frame: 0, value: camera.beta },
     { frame: 30, value: Math.PI / 3 }
   ]);
-  
+
   radiusAnimation.setKeys([
     { frame: 0, value: camera.radius },
     { frame: 30, value: 50 }
   ]);
-  
+
   targetAnimation.setKeys([
     { frame: 0, value: camera.target },
     { frame: 30, value: new BABYLON.Vector3(0, 0, 0) }
   ]);
-  
+
   // Aggiungi easing
   const easingFunction = new BABYLON.QuadraticEase();
   easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-  
+
   alphaAnimation.setEasingFunction(easingFunction);
   betaAnimation.setEasingFunction(easingFunction);
   radiusAnimation.setEasingFunction(easingFunction);
   targetAnimation.setEasingFunction(easingFunction);
-  
+
   // Aggiungi le animazioni alla telecamera
   camera.animations = [];
   camera.animations.push(alphaAnimation);
   camera.animations.push(betaAnimation);
   camera.animations.push(radiusAnimation);
   camera.animations.push(targetAnimation);
-  
+
   // Avvia le animazioni
   camera.getScene().beginAnimation(camera, 0, 30, false);
 }
@@ -245,20 +245,20 @@ export function createSecondaryCamera(scene, canvas) {
     new BABYLON.Vector3(0, 100, 0),
     scene
   );
-  
+
   // Punta verso il basso
   topCamera.setTarget(new BABYLON.Vector3(0, 0, 0));
-  
+
   // Disattiva i controlli di default
   topCamera.detachControl();
-  
+
   // Opzionale: configura un viewport per questa telecamera
   // In questo caso, posizionala in un angolo del canvas
   topCamera.viewport = new BABYLON.Viewport(0.8, 0, 0.2, 0.2);
-  
+
   // Disabilita inizialmente la telecamera secondaria
   topCamera.isEnabled = false;
-  
+
   return topCamera;
 }
 

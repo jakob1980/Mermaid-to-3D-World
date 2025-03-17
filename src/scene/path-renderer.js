@@ -1,7 +1,7 @@
 // pathRenderer.js
 // Gestisce la creazione delle rappresentazioni 3D dei collegamenti tra nodi
 
-import * as BABYLON from '@babylonjs/core';
+// BABYLON è già disponibile globalmente dal CDN
 
 export function createPathMeshes(scene, edges, nodeMeshes) {
   const pathMeshes = [];

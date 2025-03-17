@@ -1,7 +1,7 @@
 // nodeRenderer.js
 // Gestisce la creazione delle rappresentazioni 3D dei nodi
 
-import * as BABYLON from '@babylonjs/core';
+// BABYLON è già disponibile globalmente dal CDN
 
 /**
  * Crea le mesh 3D per i nodi del diagramma

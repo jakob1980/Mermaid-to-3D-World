@@ -1,0 +1,13 @@
+flowchart TD
+    A[Avvio] --> B{Utente registrato?}
+    B -->|Sì| C[Mostra dashboard]
+    B -->|No| D[Mostra pagina di login]
+    D --> E[Controllo credenziali]
+    E -->|Valide| C
+    E -->|Non valide| F[Mostra errore]
+    F --> D
+    C --> G[Utente naviga nel sito]
+    G --> H{Logout?}
+    H -->|Sì| I[Chiudi sessione]
+    H -->|No| G
+    I --> A

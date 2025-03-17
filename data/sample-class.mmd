@@ -1,0 +1,42 @@
+classDiagram
+    class User {
+        +String username
+        +String email
+        -String password
+        +login()
+        +logout()
+        +updateProfile()
+    }
+    
+    class Product {
+        +String name
+        +String description
+        +float price
+        +int stock
+        +addToCart()
+        +updateStock()
+    }
+    
+    class Cart {
+        -Array items
+        +int totalItems
+        +float totalPrice
+        +addItem()
+        +removeItem()
+        +checkout()
+    }
+    
+    class Order {
+        +String orderNumber
+        +Date creationDate
+        +String status
+        +User customer
+        +process()
+        +ship()
+        +cancel()
+    }
+    
+    User "1" --> "*" Order : places
+    User "1" --> "1" Cart : owns
+    Cart "*" --> "*" Product : contains
+    Order "*" --> "*" Product : includes

@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Database
+    
+    User->>Frontend: Accede alla pagina
+    Frontend->>API: Richiede dati
+    API->>Database: Query dati
+    Database-->>API: Risultati
+    API-->>Frontend: Risposta JSON
+    Frontend-->>User: Visualizza dati
+    
+    User->>Frontend: Invia form
+    Frontend->>API: POST dati
+    API->>Database: Inserisce record
+    Database-->>API: Conferma
+    API-->>Frontend: Stato operazione
+    Frontend-->>User: Feedback successo
+    
+    Note over User,Frontend: Interazione utente
+    Note over API,Database: Operazioni di backend

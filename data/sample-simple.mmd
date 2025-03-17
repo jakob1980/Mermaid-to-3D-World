@@ -1,0 +1,7 @@
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+    B --> D[Alternative]
+    D --> C
+    A --> E[Skip Process]
+    E --> C

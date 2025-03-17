@@ -1,0 +1,30 @@
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# File di ambiente
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Directory node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Directory di build
+/dist
+/build
+
+# IDE e editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# File temporanei
+*.log
+*.tmp 

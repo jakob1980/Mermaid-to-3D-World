@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid-to-3D-World</title>
+    <link rel="stylesheet" href="styles/main.css">
+    
+    <!-- Babylon.js -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+    <!-- Script di verifica Babylon.js -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('Verifica caricamento Babylon.js:');
+            console.log('BABYLON disponibile:', typeof BABYLON !== 'undefined');
+            if (typeof BABYLON !== 'undefined') {
+                console.log('Versione BABYLON:', BABYLON.Engine.Version);
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Mermaid-to-3D-World</h1>
+        <p>Trasforma diagrammi Mermaid in mondi 3D esplorabili</p>
+    </header>
+    
+    <div id="controlPanel" class="control-panel">
+        <div class="control-section">
+            <input type="file" id="fileInput" accept=".mmd, .txt">
+            <button id="uploadButton" class="control-button">Carica Diagramma</button>
+        </div>
+        
+        <div class="control-section">
+            <select id="exampleSelect" class="control-select">
+                <option value="simple">Esempio Semplice</option>
+                <option value="flowchart">Diagramma di Flusso</option>
+                <option value="sequence">Diagramma di Sequenza</option>
+                <option value="class">Diagramma di Classe</option>
+            </select>
+            <button id="loadExampleButton" class="control-button">Carica Esempio</button>
+        </div>
+        
+        <div class="control-section">
+            <button id="resetButton" class="control-button">Reimposta Vista</button>
+            <button id="helpButton" class="control-button">Aiuto</button>
+            <button id="fullscreenButton" class="control-button">Schermo Intero</button>
+        </div>
+    </div>
+    
+    <div id="canvasContainer" class="canvas-container">
+        <canvas id="renderCanvas" touch-action="none"></canvas>
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="spinner"></div>
+            <div class="message">Caricamento in corso...</div>
+        </div>
+        <div id="statusMessage" class="status-message">
+            Carica un diagramma Mermaid per iniziare
+        </div>
+    </div>
+    
+    <div id="helpPanel" class="help-panel">
+        <div class="help-header">
+            <h2>Guida all'Uso</h2>
+            <button id="closeHelpButton" class="close-button">×</button>
+        </div>
+        <div class="help-content">
+            <h3>Mermaid-to-3D-World</h3>
+            <p>Questa applicazione trasforma i diagrammi Mermaid in mondi 3D esplorabili.</p>
+            
+            <h4>Come Usare:</h4>
+            <ol>
+                <li><strong>Carica un File:</strong> Carica un file di testo in formato Mermaid (.mmd o .txt).</li>
+                <li><strong>Carica un Esempio:</strong> Seleziona un esempio predefinito dal menu a tendina.</li>
+                <li><strong>Esplora il Mondo 3D:</strong> Usa il mouse per navigare nel mondo 3D.</li>
+            </ol>
+            
+            <h4>Controlli di Navigazione:</h4>
+            <ul>
+                <li><strong>Rotazione Camera:</strong> Tasto sinistro + trascina</li>
+                <li><strong>Zoom:</strong> Rotella del mouse</li>
+                <li><strong>Spostamento:</strong> Tasto destro + trascina</li>
+                <li><strong>Seleziona Nodo:</strong> Click su un nodo</li>
+                <li><strong>Segui Collegamento:</strong> Click su un collegamento</li>
+                <li><strong>Centra Camera:</strong> Doppio click su un nodo</li>
+                <li><strong>Reimposta Vista:</strong> Pulsante "Reimposta Vista" o tasto ESC</li>
+            </ul>
+            
+            <h4>Formato Mermaid Supportato:</h4>
+            <ul>
+                <li>Diagrammi di flusso (flowchart)</li>
+                <li>Diagrammi di sequenza (sequenceDiagram)</li>
+                <li>Diagrammi di classe (classDiagram)</li>
+            </ul>
+            
+            <h4>Esempio di Sintassi:</h4>
+            <pre>
+graph TD
+A[Start] --> B[Process]
+B --> C[End]
+            </pre>
+        </div>
+    </div>
+    
+    <div id="diagnosticPanel" style="display: none; padding: 20px; margin: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;">
+        <h3>Diagnostica Applicazione</h3>
+        <p>Se l'applicazione non funziona, puoi visualizzare il codice Mermaid dell'esempio qui sotto:</p>
+        
+        <div id="mermaidContent" style="background: #fff; padding: 10px; border: 1px solid #ccc; white-space: pre; font-family: monospace; margin: 10px 0;"></div>
+        
+        <button id="showDiagnosticButton" class="control-button">Mostra Diagnostica</button>
+        <button id="loadDirectButton" class="control-button">Carica Esempio Direttamente</button>
+    </div>
+    
+    <!-- JavaScript Modules -->
+    <script type="module">
+        // Script di debug per verificare il caricamento dei moduli
+        console.log('Test caricamento moduli ES6...');
+        
+        try {
+            import('./src/main.js')
+                .then(module => {
+                    console.log('Module main.js caricato con successo!');
+                    window.appModule = module;
+                })
+                .catch(error => {
+                    console.error('Errore durante il caricamento del modulo main.js:', error);
+                    document.getElementById('statusMessage').textContent = 'Errore di caricamento moduli: ' + error.message;
+                    document.getElementById('statusMessage').className = 'status-message error';
+                    document.getElementById('statusMessage').style.display = 'block';
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                });
+        } catch (error) {
+            console.error('Errore generale durante l\'importazione:', error);
+        }
+    </script>
+    
+    <!-- Rimuoviamo il riferimento modulare normale per evitare duplicati -->
+    <!-- <script type="module" src="src/main.js"></script> -->
+    
+    <!-- Fallback di debug: versione semplificata che mostra solo un esempio -->
+    <script>
+        // Mostriamo un messaggio dopo 5 secondi se l'app non è ancora inizializzata
+        setTimeout(function() {
+            if (!window.appModule) {
+                console.warn('Applicazione non inizializzata dopo 5 secondi - possibile problema con i moduli ES6');
+                
+                // Mostra il pannello di diagnostica
+                document.getElementById('diagnosticPanel').style.display = 'block';
+                
+                // Abilita pulsante esempio per modalità fallback
+                const loadExampleButton = document.getElementById('loadExampleButton');
+                const showDiagnosticButton = document.getElementById('showDiagnosticButton');
+                const loadDirectButton = document.getElementById('loadDirectButton');
+                
+                if (loadExampleButton) {
+                    loadExampleButton.addEventListener('click', function() {
+                        const select = document.getElementById('exampleSelect');
+                        const exampleType = select ? select.value : 'simple';
+                        
+                        loadMermaidExample(exampleType);
+                    });
+                }
+                
+                if (showDiagnosticButton) {
+                    showDiagnosticButton.addEventListener('click', function() {
+                        document.getElementById('diagnosticPanel').style.display = 'block';
+                    });
+                }
+                
+                if (loadDirectButton) {
+                    loadDirectButton.addEventListener('click', function() {
+                        const select = document.getElementById('exampleSelect');
+                        const exampleType = select ? select.value : 'simple';
+                        loadMermaidExample(exampleType);
+                    });
+                }
+            }
+        }, 5000);
+        
+        // Funzione per caricare un esempio Mermaid direttamente
+        function loadMermaidExample(exampleType) {
+            console.log('Caricamento fallback esempio:', exampleType);
+            document.getElementById('loadingIndicator').style.display = 'flex';
+            
+            // Carica il file di esempio
+            fetch('data/sample-' + exampleType + '.mmd')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Impossibile caricare l\'esempio: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(content => {
+                    // Mostra il contenuto nella diagnostica
+                    const mermaidContentDiv = document.getElementById('mermaidContent');
+                    if (mermaidContentDiv) {
+                        mermaidContentDiv.textContent = content;
+                    }
+                    
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('statusMessage').textContent = 'Esempio caricato in modalità diagnostica. I moduli ES6 non funzionano in questo browser.';
+                    document.getElementById('statusMessage').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Errore caricamento esempio:', error);
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('statusMessage').textContent = 'Errore: ' + error.message;
+                    document.getElementById('statusMessage').className = 'status-message error';
+                    document.getElementById('statusMessage').style.display = 'block';
+                });
+        }
+    </script>
+</body>
+</html>
